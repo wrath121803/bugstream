@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera Stream with Settings</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: black;
+            color: white;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+        }
+
+        .container {
+            text-align: center;
+        }
+
+        video {
+            border: 3px solid #333;
+            resize: both;
+            overflow: hidden;
+            max-width: 100%;
+            height: auto;
+            width: 80vw;
+        }
+
+        .settings-dropdown {
+            display: none;
+            margin-top: 20px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            padding: 10px;
+            width: 300px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .password-input {
+            margin-bottom: 10px;
+        }
+
+        button {
+            padding: 10px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .setting-label {
+            margin-top: 10px;
+            color: black;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Camera Stream</h1>
+    <video id="camera" autoplay></video>
+    
+    <!-- Button to toggle settings dropdown -->
+    <button onclick="toggleSettings()">Settings</button>
+
+    <!-- Password protected settings dropdown -->
+    <div class="settings-dropdown" id="settings">
+        <input type="password" id="password" class="password-input" placeholder="Enter password" />
+        <button onclick="verifyPassword()">Submit</button>
+        <p id="error-message" style="color: red; display: none;">Incorrect password, try again!</p>
+
+        <!-- Camera settings -->
+        <div id="cameraSettings" style="display: none;">
+            <label class="setting-label">Choose Resolution:</label>
+            <select id="resolutionSelect">
+                <option value="640x480">640x480</option>
+                <option value="1280x720">1280x720</option>
+                <option value="1920x1080">1920x1080</option>
+            </select>
+            <br>
+            <button onclick="applySettings()">Apply Settings</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Access the camera and stream video
+    const video = document.getElementById('camera');
+    let currentStream;
+
+    function startCamera(resolution = '1280x720') {
+        // Stop the previous stream if any
+        if (currentStream) {
+            const tracks = currentStream.getTracks();
+            tracks.forEach(track => track.stop());
+        }
+
+        const [width, height] = resolution.split('x').map(Number);
+
+        navigator.mediaDevices.getUserMedia({ video: { width, height } })
+            .then(stream => {
+                currentStream = stream;
+                video.srcObject = stream;
+            })
+            .catch(err => {
+                console.error("Error accessing camera: ", err);
+            });
+    }
+
+    // Default resolution when page loads
+    startCamera('1280x720');
+
+    // Function to toggle the settings dropdown
+    function toggleSettings() {
+        const settings = document.getElementById('settings');
+        settings.style.display = settings.style.display === 'block' ? 'none' : 'block';
+    }
+
+    // Function to verify password
+    function verifyPassword() {
+        const password = document.getElementById('password').value;
+        const correctPassword = "12345"; // Set your password here
+        const errorMessage = document.getElementById('error-message');
+
+        if (password === correctPassword) {
+            errorMessage.style.display = 'none';
+            document.getElementById('cameraSettings').style.display = 'block';
+        } else {
+            errorMessage.style.display = 'block';
+        }
+    }
+
+    // Function to apply camera settings
+    function applySettings() {
+        const resolutionSelect = document.getElementById('resolutionSelect');
+        const selectedResolution = resolutionSelect.value;
+
+        startCamera(selectedResolution); // Restart the camera with new resolution
+    }
+</script>
+
+</body>
+</html>
